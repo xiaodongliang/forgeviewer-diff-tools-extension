@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Forge Viewer - Diff Tools Demo</title>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta charset="utf-8">
+
+  <!-- The Viewer CSS -->
+  <link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/7.*/style.min.css"
+    type="text/css">
+  <!-- The Viewer JS -->
+  <script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/7.*/viewer3D.js"></script>
+  <script src="../MultipleModelUtil.js"></script>
+</head>
+<style>
+  #viewer {
+    width: 1400px;
+    height: 800px;
+  }
+</style>
+
+<body>
+  <div id="viewer"></div>
+</body>
+
+<!-- Developer JS -->
+<script>
+
+  document.addEventListener("DOMContentLoaded", function (event) {
+    var viewer;
+    const models = [
+      { name: 'modelA', urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Zm9yZ2UtY2xhc3MvQXVkdWJvbl9NZWNoYW5pY2FsX1ZlcnNpb25fMi5ydnQ' },
+      { name: 'modelB', urn: 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6Zm9yZ2UtY2xhc3MvQXVkdWJvbl9NZWNoYW5pY2FsX1ZlcnNpb25fMS5ydnQ' }
+    ];
+    launchViewer(models.concat());
+  }); 
+
+  function launchViewer(models) {
+    if (!models || models.length <= 0)
+      return console.error('Empty model input');
+
+    const options = {
+      env: 'AutodeskProduction',
+      //getAccessToken: fetchForgeToken
+      accessToken: '<your token>'
+    };
+
+    Autodesk.Viewing.Initializer(options, function () {
+
+      //get the viewer div
+      const viewerDiv = document.getElementById('viewer');
+
+      //initialize the viewer object
+      viewer = new Autodesk.Viewing.Private.GuiViewer3D(viewerDiv, { modelBrowserStartCollapsed: true, startCollapsed: true });
+
+      document.getElementsByClassName('adsk-viewing-viewer')[0].style.height = '800px'
+      document.getElementsByClassName('adsk-viewing-viewer')[0].style.width = '1400px'
+      //load model one by one in sequence
+      const util = new MultipleModelUtil(viewer);
+      util.processModels(models);
+    });
+  }
+
+  function modelDiff() {
+    var extensionConfig = {}
+    extensionConfig.mimeType = 'application/vnd.autodesk.revit'
+    extensionConfig.primaryModels = [viewer.getVisibleModels()[0]]
+    extensionConfig.diffModels = [viewer.getVisibleModels()[1]]
+    extensionConfig.diffMode = 'overlay'
+    extensionConfig.versionA = '2'
+    extensionConfig.versionB = '1'
+    viewer.loadExtension('Autodesk.DiffTool', extensionConfig)
+      .then(function (res) {
+        //window.DIFF_EXT = viewer.getExtension('Autodesk.DiffTool');
+        //console.log(window.DIFF_EXT);
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  } 
+
+</script>
+
+</html>
